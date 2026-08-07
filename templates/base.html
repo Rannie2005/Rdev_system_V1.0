@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SISTEMA RDEV v1.0{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #0d6efd;
+            --dark-blue: #0a58ca;
+            --light-blue: #e7f1ff;
+            --dark: #1a1a1a;
+            --gray-600: #6c757d;
+            --gray-300: #dee2e6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #f4f6f9;
+            color: #333;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+        }
+
+        /* Navbar */
+        .navbar-custom {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important;
+            border-bottom: 3px solid var(--primary-blue);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            padding: 0.5rem 0;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            padding: 5px 0;
+        }
+
+        .logo {
+            height: 45px;
+            margin-right: 15px;
+            filter: brightness(0) invert(1);
+        }
+
+        .company-name {
+            color: #fff;
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin: 0;
+            letter-spacing: 1px;
+            background: linear-gradient(90deg, #ffffff, #8ecae6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .logo-container a {
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo-container a:hover {
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+
+        .navbar-text-custom {
+            color: #fff !important;
+            font-weight: 500;
+        }
+
+        .navbar-text-custom i {
+            color: var(--primary-blue);
+        }
+
+        .btn-logout {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.3);
+            color: #fff;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-logout:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: #fff;
+            color: #fff;
+        }
+
+        /* Cards */
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            background: #fff;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+
+        .card-header {
+            background: transparent;
+            border-bottom: 2px solid var(--gray-300);
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+        }
+
+        .card-header.bg-primary {
+            background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue)) !important;
+            color: #fff;
+            border-radius: 12px 12px 0 0;
+        }
+
+        /* Botones */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+            border: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(13, 110, 253, 0.4);
+        }
+
+        .btn-outline-primary {
+            border: 2px solid var(--primary-blue);
+            color: var(--primary-blue);
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        .btn-outline-primary:hover {
+            background: var(--primary-blue);
+            color: #fff;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #198754, #157347);
+            border: none;
+            border-radius: 8px;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545, #b02a37);
+            border: none;
+            border-radius: 8px;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ffc107, #e0a800);
+            border: none;
+            border-radius: 8px;
+            color: #000;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #0dcaf0, #0aa2c0);
+            border: none;
+            border-radius: 8px;
+            color: #000;
+        }
+
+        /* Tablas */
+        .table {
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .table thead th {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: #fff;
+            border: none;
+            padding: 1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+        }
+
+        .table tbody td {
+            padding: 0.8rem 1rem;
+            vertical-align: middle;
+            border-bottom: 1px solid var(--gray-300);
+        }
+
+        .table tbody tr:hover {
+            background-color: var(--light-blue);
+        }
+
+        /* Badges */
+        .badge-success {
+            background: #d1e7dd;
+            color: #0f5132;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+
+        .badge-warning {
+            background: #fff3cd;
+            color: #856404;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+
+        .badge-danger {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+
+        .badge-info {
+            background: #cff4fc;
+            color: #055160;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+
+        /* Formularios */
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 2px solid var(--gray-300);
+            padding: 0.6rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.3rem;
+        }
+
+        /* Alertas */
+        .alert {
+            border-radius: 12px;
+            border: none;
+            padding: 1rem 1.5rem;
+        }
+
+        .alert-success {
+            background: #d1e7dd;
+            color: #0f5132;
+        }
+
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .alert-info {
+            background: #cff4fc;
+            color: #055160;
+        }
+
+        /* Paginación */
+        .pagination .page-link {
+            border: none;
+            color: var(--primary-blue);
+            border-radius: 8px;
+            margin: 0 3px;
+            padding: 0.5rem 1rem;
+        }
+
+        .pagination .page-item.active .page-link {
+            background: var(--primary-blue);
+            color: #fff;
+        }
+
+        .pagination .page-link:hover {
+            background: var(--light-blue);
+        }
+
+        /* Modales */
+        .modal-content {
+            border-radius: 16px;
+            border: none;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+
+        .modal-header {
+            border-bottom: 2px solid var(--gray-300);
+            padding: 1.2rem 1.5rem;
+        }
+
+        .modal-footer {
+            border-top: 2px solid var(--gray-300);
+            padding: 1.2rem 1.5rem;
+        }
+
+        /* Stats Cards */
+        .stat-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            border-left: 4px solid var(--primary-blue);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .stat-card .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .stat-card .stat-icon.blue {
+            background: var(--light-blue);
+            color: var(--primary-blue);
+        }
+
+        .stat-card .stat-icon.green {
+            background: #d1e7dd;
+            color: #198754;
+        }
+
+        .stat-card .stat-icon.yellow {
+            background: #fff3cd;
+            color: #ffc107;
+        }
+
+        .stat-card .stat-icon.red {
+            background: #f8d7da;
+            color: #dc3545;
+        }
+
+        /* Scrollbar personalizada */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-blue);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--dark-blue);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .company-name {
+                font-size: 1.2rem;
+            }
+            
+            .logo {
+                height: 35px;
+            }
+            
+            .stat-card {
+                margin-bottom: 1rem;
+            }
+        }
+
+        /* Utilidades extra */
+        .text-primary-custom {
+            color: var(--primary-blue) !important;
+        }
+
+        .bg-primary-custom {
+            background: var(--primary-blue) !important;
+        }
+
+        .border-primary-custom {
+            border-color: var(--primary-blue) !important;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom">
+        <div class="container">
+            <div class="logo-container">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'analisis:dashboard' %}" style="text-decoration: none;">
+                        <img src="/static/logo.png" alt="RDEV" class="logo">
+                    </a>
+                {% else %}
+                    <a href="{% url 'usuarios:login' %}" style="text-decoration: none;">
+                        <img src="/static/logo.png" alt="RDEV" class="logo">
+                    </a>
+                {% endif %}
+                <h1 class="company-name">RDEV V 1.0</h1>
+            </div>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link navbar-text-custom" href="{% url 'almacen:dashboard' %}">
+                                <i class="bi bi-box-seam"></i> Almacén
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link navbar-text-custom" href="{% url 'ventas:lista_ventas' %}">
+                                <i class="bi bi-cash-stack"></i> Ventas
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link navbar-text-custom" href="{% url 'analisis:dashboard' %}">
+                                <i class="bi bi-graph-up"></i> Análisis
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <span class="navbar-text navbar-text-custom me-2">
+                                <i class="bi bi-person-circle"></i> {{ user.username }}
+                            </span>
+                        </li>
+                        
+                        <li class="nav-item">
+                            <form action="{% url 'usuarios:logout' %}" method="post" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-logout btn-sm">
+                                    <i class="bi bi-box-arrow-right"></i> Salir
+                                </button>
+                            </form>
+                        </li>
+                        
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenido principal -->
+    <div class="container-fluid px-4 py-4">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'warning' %}warning{% elif message.tags == 'info' %}info{% else %}success{% endif %} alert-dismissible fade show shadow-sm" role="alert">
+                    <i class="bi bi-{% if message.tags == 'error' %}x-circle{% elif message.tags == 'warning' %}exclamation-triangle{% elif message.tags == 'info' %}info-circle{% else %}check-circle{% endif %} me-2"></i>
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

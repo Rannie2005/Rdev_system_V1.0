@@ -1,0 +1,277 @@
+{% extends 'base.html' %}
+
+{% block title %}Nueva Devolución - Venta #{{ venta.folio }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .producto-devolucion {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 10px;
+        transition: all 0.3s ease;
+        background: #fff;
+    }
+    .producto-devolucion:hover {
+        border-color: #0d6efd;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    .producto-devolucion.selected {
+        border-color: #198754;
+        background: #f0f8f0;
+    }
+    .producto-devolucion .form-check-input:checked {
+        background-color: #198754;
+        border-color: #198754;
+    }
+    .cantidad-devuelta {
+        width: 60px;
+        display: inline-block;
+    }
+    .total-devolucion {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #dc3545;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="mb-1">
+                    <i class="bi bi-arrow-return-left text-warning"></i> 
+                    Devolución - Venta #{{ venta.folio }}
+                </h2>
+                <p class="text-muted mb-0">
+                    Cliente: {{ venta.cliente|default:"Consumidor Final" }} | 
+                    Fecha: {{ venta.fecha|date:"d/m/Y H:i" }}
+                </p>
+            </div>
+            <div>
+                <a href="{% url 'ventas:detalle_venta' venta.pk %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Volver
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Panel izquierdo: Productos a devolver -->
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0">
+                    <i class="bi bi-box-seam me-2"></i>
+                    Selecciona los productos a devolver
+                </h6>
+            </div>
+            <div class="card-body">
+                <form method="post" id="devolucionForm">
+                    {% csrf_token %}
+                    
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Selecciona los productos que el cliente desea devolver y la cantidad.
+                    </div>
+
+                    {% for detalle in detalles_venta %}
+                        <div class="producto-devolucion" id="producto-{{ detalle.id }}">
+                            <div class="row align-items-center">
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" 
+                                            name="detalles[]" value="{{ detalle.id }}" 
+                                            id="detalle-{{ detalle.id }}"
+                                            onchange="toggleCantidad(this, {{ detalle.id }})">
+                                        <label class="form-check-label fw-bold" for="detalle-{{ detalle.id }}">
+                                            {{ detalle.producto_variante.producto.nombre }}
+                                        </label>
+                                    </div>
+                                    <div class="ms-4 mt-1">
+                                        <small class="text-muted">
+                                            {{ detalle.producto_variante.producto.marca|default:"Sin marca" }} • 
+                                            Talla {{ detalle.producto_variante.talla.nombre }}
+                                            {% if detalle.producto_variante.color %}
+                                                • {{ detalle.producto_variante.color }}
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                </div>
+                                <div class="col-md-2 text-center">
+                                    <span class="badge bg-primary">Vendido: {{ detalle.cantidad }}</span>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small text-muted">Cantidad a devolver</label>
+                                    <input type="number" 
+                                        name="cantidad_{{ detalle.id }}" 
+                                        id="cantidad-{{ detalle.id }}"
+                                        class="form-control form-control-sm cantidad-devuelta" 
+                                        value="0" min="0" max="{{ detalle.cantidad }}"
+                                        disabled
+                                        onchange="calcularTotal()">
+                                </div>
+                                <div class="col-md-2 text-end">
+                                    <small class="text-muted d-block">Precio unit.</small>
+                                    <span class="fw-bold" id="precio-{{ detalle.id }}">{{ detalle.precio_unitario|floatformat:2 }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-inbox display-4 text-muted d-block"></i>
+                            <p class="text-muted mt-2">Esta venta no tiene productos para devolver</p>
+                        </div>
+                    {% endfor %}
+
+                    <!-- Motivo -->
+                    <div class="mt-4">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-chat me-2"></i>Motivo de la devolución
+                        </label>
+                        <textarea name="motivo" class="form-control" rows="3" 
+                                placeholder="Describe el motivo de la devolución..." required></textarea>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel derecho: Resumen -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0">
+                    <i class="bi bi-calculator me-2"></i>
+                    Resumen de Devolución
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Total de la venta:</span>
+                    <span class="fw-bold">${{ venta.total|floatformat:2 }}</span>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Productos seleccionados:</span>
+                    <span class="fw-bold" id="totalProductos">0</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Cantidad total:</span>
+                    <span class="fw-bold" id="totalCantidad">0</span>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between">
+                    <span class="fw-bold">Total a devolver:</span>
+                    <span class="total-devolucion" id="totalDevolver">$0.00</span>
+                </div>
+            </div>
+            <div class="card-footer bg-white">
+                <button type="button" class="btn btn-warning w-100" onclick="confirmarDevolucion()">
+                    <i class="bi bi-arrow-return-left"></i> Confirmar Devolución
+                </button>
+                <small class="text-muted d-block text-center mt-2">
+                    El stock será restaurado automáticamente
+                </small>
+            </div>
+        </div>
+
+        <!-- Información adicional -->
+        <div class="card shadow-sm mt-3">
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>Importante:</strong>
+                    <ul class="mb-0 mt-2">
+                        <li>Solo se pueden devolver productos de esta venta</li>
+                        <li>El stock se restaurará automáticamente</li>
+                        <li>La devolución queda registrada en el sistema</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Función para alternar la cantidad
+    function toggleCantidad(checkbox, detalleId) {
+        const input = document.getElementById(`cantidad-${detalleId}`);
+        const producto = document.getElementById(`producto-${detalleId}`);
+        
+        if (checkbox.checked) {
+            input.disabled = false;
+            input.value = 1;
+            producto.classList.add('selected');
+        } else {
+            input.disabled = true;
+            input.value = 0;
+            producto.classList.remove('selected');
+        }
+        calcularTotal();
+    }
+
+    // Función para calcular el total
+    function calcularTotal() {
+        let totalProductos = 0;
+        let totalCantidad = 0;
+        let totalDevolver = 0;
+
+        // Obtener todos los checkboxes
+        const checkboxes = document.querySelectorAll('input[name="detalles[]"]');
+        
+        checkboxes.forEach(function(checkbox) {
+            if (checkbox.checked) {
+                const detalleId = checkbox.value;
+                const input = document.getElementById(`cantidad-${detalleId}`);
+                const precioElement = document.getElementById(`precio-${detalleId}`);
+                
+                if (input && precioElement) {
+                    const cantidad = parseInt(input.value) || 0;
+                    const precio = parseFloat(precioElement.textContent) || 0;
+                    
+                    if (cantidad > 0) {
+                        totalProductos++;
+                        totalCantidad += cantidad;
+                        totalDevolver += cantidad * precio;
+                    }
+                }
+            }
+        });
+
+        document.getElementById('totalProductos').textContent = totalProductos;
+        document.getElementById('totalCantidad').textContent = totalCantidad;
+        document.getElementById('totalDevolver').textContent = `$${totalDevolver.toFixed(2)}`;
+    }
+
+    // Función para confirmar la devolución
+    function confirmarDevolucion() {
+        const totalText = document.getElementById('totalDevolver').textContent;
+        const total = parseFloat(totalText.replace('$', ''));
+        
+        if (total === 0) {
+            alert('Selecciona al menos un producto para devolver');
+            return;
+        }
+
+        const motivo = document.querySelector('textarea[name="motivo"]').value.trim();
+        if (!motivo) {
+            alert('Por favor, ingresa el motivo de la devolución');
+            document.querySelector('textarea[name="motivo"]').focus();
+            return;
+        }
+
+        if (confirm(`¿Confirmar devolución por $${total.toFixed(2)}?`)) {
+            document.getElementById('devolucionForm').submit();
+        }
+    }
+
+    // Inicializar al cargar la página
+    document.addEventListener('DOMContentLoaded', function() {
+        calcularTotal();
+    });
+</script>
+{% endblock %}

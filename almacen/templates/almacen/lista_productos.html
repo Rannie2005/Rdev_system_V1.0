@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+
+{% block title %}Lista de Productos{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="mb-1"><i class="bi bi-boxes text-primary"></i> Productos</h2>
+                <p class="text-muted mb-0">Gestiona el inventario de productos</p>
+            </div>
+            <div>
+                <a href="/admin/almacen/producto/add/" class="btn btn-primary" target="_blank">
+                    <i class="bi bi-plus-circle"></i> Nuevo Producto
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Buscar</label>
+                <input type="text" name="search" class="form-control" placeholder="Nombre o marca..." value="{{ search }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Categoría</label>
+                <select name="categoria" class="form-select">
+                    <option value="">Todas</option>
+                    {% for cat in categorias %}
+                        <option value="{{ cat.id }}" {% if categoria_seleccionada == cat.id|stringformat:"s" %}selected{% endif %}>
+                            {{ cat.nombre }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Proveedor</label>
+                <select name="proveedor" class="form-select">
+                    <option value="">Todos</option>
+                    {% for prov in proveedores %}
+                        <option value="{{ prov.id }}" {% if proveedor_seleccionado == prov.id|stringformat:"s" %}selected{% endif %}>
+                            {{ prov.nombre }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Marca</label>
+                <input type="text" name="marca" class="form-control" placeholder="Marca..." value="{{ marca_seleccionada }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Estado Stock</label>
+                <select name="estado_stock" class="form-select">
+                    <option value="">Todos</option>
+                    <option value="disponible" {% if estado_stock_seleccionado == 'disponible' %}selected{% endif %}>Disponible</option>
+                    <option value="poco_stock" {% if estado_stock_seleccionado == 'poco_stock' %}selected{% endif %}>Casi Agotado</option>
+                    <option value="agotado" {% if estado_stock_seleccionado == 'agotado' %}selected{% endif %}>Agotado</option>
+                </select>
+            </div>
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-search"></i> Filtrar
+                </button>
+                <a href="{% url 'almacen:lista_productos' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-counterclockwise"></i> Limpiar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Lista de productos -->
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Marca</th>
+                        <th>Categoría</th>
+                        <th>Proveedor</th>
+                        <th>Variantes</th>
+                        <th>Stock Total</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for producto in page_obj %}
+                        <tr>
+                            <td>
+                                <strong>{{ producto.nombre }}</strong>
+                                {% if producto.descripcion %}
+                                    <br><small class="text-muted">{{ producto.descripcion|truncatechars:50 }}</small>
+                                {% endif %}
+                            </td>
+                            <td>{{ producto.marca|default:"-" }}</td>
+                            <td>{{ producto.categoria.nombre|default:"-" }}</td>
+                            <td>{{ producto.proveedor.nombre|default:"-" }}</td>
+                            <td>{{ producto.variantes.count }}</td>
+                            <td>
+                                <span class="badge bg-{% if producto.stock_total == 0 %}danger{% elif producto.stock_total <= 5 %}warning{% else %}success{% endif %}">
+                                    {{ producto.stock_total }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="/admin/almacen/producto/{{ producto.pk }}/change/" class="btn btn-outline-warning" target="_blank" title="Editar">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a href="/admin/almacen/producto/{{ producto.pk }}/delete/" class="btn btn-outline-danger" target="_blank" title="Eliminar">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-4">
+                                <i class="bi bi-inbox display-4 text-muted d-block"></i>
+                                <p class="text-muted mt-2">No hay productos registrados</p>
+                                <a href="/admin/almacen/producto/add/" class="btn btn-primary btn-sm" target="_blank">
+                                    <i class="bi bi-plus-circle"></i> Crear primer producto
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginación -->
+        {% if page_obj.has_other_pages %}
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                    {{ num }}
+                                </a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

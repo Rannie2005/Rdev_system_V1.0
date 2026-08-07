@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}Lista de Devoluciones{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="mb-1">
+                    <i class="bi bi-arrow-return-left text-warning"></i> 
+                    Devoluciones
+                </h2>
+                <p class="text-muted mb-0">Historial de devoluciones realizadas</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th># Devolución</th>
+                        <th>Fecha</th>
+                        <th>Venta</th>
+                        <th>Cliente</th>
+                        <th>Total Devuelto</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for devolucion in devoluciones %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ devolucion.fecha|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                <a href="{% url 'ventas:detalle_venta' devolucion.venta.pk %}">
+                                    #{{ devolucion.venta.folio }}
+                                </a>
+                            </td>
+                            <td>{{ devolucion.venta.cliente|default:"Consumidor Final" }}</td>
+                            <td class="fw-bold text-danger">${{ devolucion.total_devuelto|floatformat:2 }}</td>
+                            <td>
+                                <a href="{% url 'ventas:detalle_devolucion' devolucion.pk %}" 
+                                    class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i> Ver
+                                </a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4">
+                                <i class="bi bi-inbox display-4 text-muted d-block"></i>
+                                <p class="text-muted mt-2">No hay devoluciones registradas</p>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

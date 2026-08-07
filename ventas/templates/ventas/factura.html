@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+
+{% block title %}Factura #{{ venta.folio }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    @media print {
+        .no-print {
+            display: none !important;
+        }
+        .factura-container {
+            margin: 0 !important;
+            padding: 10px !important;
+            box-shadow: none !important;
+        }
+        .factura-container .card {
+            box-shadow: none !important;
+            border: none !important;
+        }
+    }
+    
+    .factura-container {
+        max-width: 350px;
+        margin: 0 auto;
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+    }
+    
+    .factura-container .header {
+        text-align: center;
+        border-bottom: 2px dashed #333;
+        padding-bottom: 10px;
+        margin-bottom: 10px;
+    }
+    
+    .factura-container .header h4 {
+        font-size: 16px;
+        font-weight: bold;
+        margin: 0;
+    }
+    
+    .factura-container .header .logo-factura {
+        max-height: 50px;
+        margin-bottom: 5px;
+    }
+    
+    .factura-container .header small {
+        display: block;
+        font-size: 10px;
+    }
+    
+    .factura-container .info-line {
+        display: flex;
+        justify-content: space-between;
+        padding: 2px 0;
+        font-size: 11px;
+    }
+    
+    .factura-container .items {
+        border-top: 1px dashed #333;
+        border-bottom: 1px dashed #333;
+        padding: 5px 0;
+        margin: 5px 0;
+    }
+    
+    .factura-container .item-line {
+        display: flex;
+        justify-content: space-between;
+        padding: 2px 0;
+        font-size: 11px;
+    }
+    
+    .factura-container .item-line .nombre {
+        flex: 1;
+    }
+    
+    .factura-container .item-line .cantidad {
+        text-align: center;
+        width: 30px;
+    }
+    
+    .factura-container .item-line .precio {
+        text-align: right;
+        width: 70px;
+    }
+    
+    .factura-container .total-line {
+        display: flex;
+        justify-content: space-between;
+        font-weight: bold;
+        font-size: 14px;
+        padding: 5px 0;
+        border-top: 2px double #333;
+        margin-top: 5px;
+    }
+    
+    .factura-container .footer {
+        text-align: center;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 2px dashed #333;
+        font-size: 10px;
+    }
+    
+    .factura-container .footer small {
+        display: block;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="no-print mb-3">
+    <a href="{% url 'ventas:detalle_venta' venta.pk %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Volver
+    </a>
+    <button onclick="window.print()" class="btn btn-primary">
+        <i class="bi bi-printer"></i> Imprimir Factura
+    </button>
+</div>
+
+<div class="factura-container">
+    <div class="card shadow-sm">
+        <div class="card-body p-3">
+            <!-- Header -->
+            <div class="header">
+                <img src="/static/images/logo.png" alt="KEMA" class="logo-factura" onerror="this.style.display='none'">
+                <h4>NOMBRE DE EMPRESA</h4>
+                <small>RNC: 123-456789-0</small>
+                <small>Tel: 809-555-1234</small>
+                <small>Calle Principal #123, COTUI</small>
+            </div>
+
+            <!-- Info de la factura -->
+            <div class="info-line">
+                <span><strong>FACTURA:</strong> {{ venta.folio }}</span>
+                <span><strong>Fecha:</strong> {{ fecha }}</span>
+            </div>
+            <div class="info-line">
+                <span><strong>Cliente:</strong> {{ venta.cliente|default:"Consumidor Final" }}</span>
+            </div>
+            <div class="info-line">
+                <span><strong>Vendedor:</strong> {{ venta.vendedor.username }}</span>
+            </div>
+            {% if venta.observaciones %}
+            <div class="info-line">
+                <span><strong>Observaciones:</strong> {{ venta.observaciones }}</span>
+            </div>
+            {% endif %}
+
+            <!-- Items -->
+            <div class="items">
+                <div class="item-line fw-bold border-bottom pb-1">
+                    <span class="nombre">Producto</span>
+                    <span class="cantidad">Cant</span>
+                    <span class="precio">Precio</span>
+                </div>
+                {% for detalle in detalles %}
+                <div class="item-line">
+                    <span class="nombre">{{ detalle.producto_variante.producto.nombre }}</span>
+                    <span class="cantidad">{{ detalle.cantidad }}</span>
+                    <span class="precio">${{ detalle.precio_unitario|floatformat:2 }}</span>
+                </div>
+                <div class="item-line text-muted" style="font-size: 9px; padding-left: 5px;">
+                    <span>{{ detalle.producto_variante.talla.nombre }} {% if detalle.producto_variante.color %}• {{ detalle.producto_variante.color }}{% endif %}</span>
+                    <span class="precio">${{ detalle.subtotal|floatformat:2 }}</span>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Total -->
+            <div class="total-line">
+                <span>TOTAL</span>
+                <span>${{ venta.total|floatformat:2 }}</span>
+            </div>
+
+            <!-- Método de pago -->
+            <div class="info-line mt-2">
+                <span><strong>Método de pago:</strong> Efectivo</span>
+            </div>
+
+            <!-- Footer -->
+            <div class="footer">
+                <small><strong>¡Gracias por su compra!</strong></small>
+                <small>Artículos devueltos tienen 48 horas de garantía</small>
+                <small>Factura generada NOMBRE DE USTED</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

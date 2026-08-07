@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalle de Venta #{{ venta.folio }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="mb-1"><i class="bi bi-receipt text-primary"></i> Venta #{{ venta.folio }}</h2>
+                <p class="text-muted mb-0">Detalle de la transacción</p>
+            </div>
+            <div>
+                <a href="{% url 'ventas:factura_venta' venta.pk %}" class="btn btn-success" target="_blank">
+                    <i class="bi bi-printer"></i> Imprimir Factura
+                </a>
+                <a href="{% url 'ventas:lista_ventas' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Volver
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Información de la venta -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Información de la Venta</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Folio:</strong> {{ venta.folio }}</p>
+                        <p><strong>Fecha:</strong> {{ venta.fecha|date:"d/m/Y H:i" }}</p>
+                        <p><strong>Cliente:</strong> {{ venta.cliente|default:"Consumidor Final" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Vendedor:</strong> {{ venta.vendedor.username }}</p>
+                        <p><strong>Estado:</strong> 
+                            <span class="badge bg-{% if venta.estado == 'completada' %}success{% elif venta.estado == 'anulada' %}danger{% elif venta.estado == 'devuelta' %}warning{% endif %}">
+                                {{ venta.get_estado_display }}
+                            </span>
+                        </p>
+                        <p><strong>Total:</strong> <span class="fw-bold text-primary">${{ venta.total|floatformat:2 }}</span></p>
+                    </div>
+                </div>
+                {% if venta.observaciones %}
+                <div class="mt-2">
+                    <strong>Observaciones:</strong> {{ venta.observaciones }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Productos -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-box-seam me-2"></i>Productos Vendidos</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Detalle</th>
+                                <th class="text-center">Cantidad</th>
+                                <th class="text-end">Precio Unit.</th>
+                                <th class="text-end">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for detalle in detalles %}
+                            <tr>
+                                <td>
+                                    <strong>{{ detalle.producto_variante.producto.nombre }}</strong>
+                                </td>
+                                <td>
+                                    <small class="text-muted">
+                                        {{ detalle.producto_variante.producto.marca|default:"Sin marca" }} • 
+                                        Talla {{ detalle.producto_variante.talla.nombre }}
+                                        {% if detalle.producto_variante.color %}
+                                            • {{ detalle.producto_variante.color }}
+                                        {% endif %}
+                                    </small>
+                                </td>
+                                <td class="text-center">{{ detalle.cantidad }}</td>
+                                <td class="text-end">${{ detalle.precio_unitario|floatformat:2 }}</td>
+                                <td class="text-end fw-bold">${{ detalle.subtotal|floatformat:2 }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-active">
+                                <td colspan="4" class="text-end fw-bold">TOTAL</td>
+                                <td class="text-end fw-bold text-primary">${{ venta.total|floatformat:2 }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel derecho: Acciones -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-gear me-2"></i>Acciones</h6>
+            </div>
+            <div class="card-body">
+                {% if venta.estado == 'completada' %}
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'ventas:factura_venta' venta.pk %}" class="btn btn-success" target="_blank">
+                            <i class="bi bi-printer"></i> Imprimir Factura
+                        </a>
+                        <a href="{% url 'ventas:nueva_devolucion' venta.pk %}" class="btn btn-warning">
+                            <i class="bi bi-arrow-return-left"></i> Devolución
+                        </a>
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalAnular">
+                            <i class="bi bi-x-circle"></i> Anular Venta
+                        </button>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Esta venta está {{ venta.get_estado_display|lower }}.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Resumen -->
+        <div class="card shadow-sm mt-3">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-calculator me-2"></i>Resumen</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <span>Artículos:</span>
+                    <span class="fw-bold">{{ venta.numero_articulos }}</span>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between">
+                    <span class="fw-bold">Total:</span>
+                    <span class="fw-bold text-primary">${{ venta.total|floatformat:2 }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Anular Venta -->
+<div class="modal fade" id="modalAnular" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Anular Venta
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'ventas:anular_venta' venta.pk %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <p>¿Estás seguro de que deseas anular esta venta?</p>
+                    <div class="alert alert-warning">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>Esta acción:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>Restaurará el stock de todos los productos</li>
+                            <li>No se podrá deshacer</li>
+                            <li>La venta quedará registrada como anulada</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-check-circle"></i> Confirmar Anulación
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalle de Devolución{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="mb-1">
+                    <i class="bi bi-arrow-return-left text-warning"></i> 
+                    Detalle de Devolución
+                </h2>
+                <p class="text-muted mb-0">
+                    Venta #{{ devolucion.venta.folio }} | 
+                    Fecha: {{ devolucion.fecha|date:"d/m/Y H:i" }}
+                </p>
+            </div>
+            <div>
+                <a href="{% url 'ventas:detalle_venta' devolucion.venta.pk %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Volver
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0">
+                    <i class="bi bi-box-seam me-2"></i>
+                    Productos Devueltos
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Detalle</th>
+                                <th class="text-center">Cantidad</th>
+                                <th class="text-end">Precio Unit.</th>
+                                <th class="text-end">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for detalle in detalles %}
+                            <tr>
+                                <td>
+                                    <strong>{{ detalle.producto_variante.producto.nombre }}</strong>
+                                </td>
+                                <td>
+                                    <small class="text-muted">
+                                        {{ detalle.producto_variante.producto.marca|default:"Sin marca" }} • 
+                                        Talla {{ detalle.producto_variante.talla.nombre }}
+                                        {% if detalle.producto_variante.color %}
+                                            • {{ detalle.producto_variante.color }}
+                                        {% endif %}
+                                    </small>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-warning text-dark">{{ detalle.cantidad }}</span>
+                                </td>
+                                <td class="text-end">${{ detalle.precio_unitario|floatformat:2 }}</td>
+                                <td class="text-end fw-bold">${{ detalle.subtotal|floatformat:2 }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-active">
+                                <td colspan="4" class="text-end fw-bold">TOTAL DEVUELTO</td>
+                                <td class="text-end fw-bold text-danger">${{ devolucion.total_devuelto|floatformat:2 }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <div class="mt-3">
+                    <div class="alert alert-info">
+                        <i class="bi bi-chat me-2"></i>
+                        <strong>Motivo:</strong> {{ devolucion.motivo }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h6 class="mb-0">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Información
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Venta:</span>
+                    <span class="fw-bold">#{{ devolucion.venta.folio }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Cliente:</span>
+                    <span>{{ devolucion.venta.cliente|default:"Consumidor Final" }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Fecha devolución:</span>
+                    <span>{{ devolucion.fecha|date:"d/m/Y H:i" }}</span>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between">
+                    <span class="fw-bold">Total devuelto:</span>
+                    <span class="fw-bold text-danger">${{ devolucion.total_devuelto|floatformat:2 }}</span>
+                </div>
+                <div class="d-flex justify-content-between mt-2">
+                    <span>Estado venta:</span>
+                    <span class="badge bg-{% if devolucion.venta.estado == 'devuelta' %}warning{% else %}success{% endif %}">
+                        {{ devolucion.venta.get_estado_display }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

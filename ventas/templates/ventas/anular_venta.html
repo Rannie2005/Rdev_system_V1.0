@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Anular Venta #{{ venta.folio }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    Anular Venta #{{ venta.folio }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <p>¿Estás seguro de que deseas anular esta venta?</p>
+                <div class="alert alert-warning">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <strong>Esta acción:</strong>
+                    <ul class="mb-0 mt-2">
+                        <li>Restaurará el stock de todos los productos</li>
+                        <li>No se podrá deshacer</li>
+                        <li>La venta quedará registrada como anulada</li>
+                    </ul>
+                </div>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'ventas:detalle_venta' venta.pk %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-check-circle"></i> Confirmar Anulación
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
